@@ -75,7 +75,7 @@ round(unemploymentRate, 2) %>%
   kable_classic(html_font = "Cambria")
 
 
-# line chart of outcome variable 'Total votes' by state and year
+# Plot of outcome variable 'Total Votes' by state and year
 totalVotesL <- ElectionData %>% 
   select(state, v2008, v2012, v2016) %>% group_by(state) %>% summarise('2008' = sum(v2008, na.rm = TRUE),
                                                                        '2012' = sum(v2012, na.rm = TRUE),
@@ -90,6 +90,7 @@ ggplot(data = totalVotesL, mapping = aes(x = reorder(factor(state), tVotes, func
   theme_bw()
 
 
+# Plot of outcome variable 'Total Democratic Votes' by state and year
 totalDVotesL <- ElectionData %>% 
   select(state, vd2008, vd2012, vd2016) %>% group_by(state) %>% summarise('2008' = sum(vd2008, na.rm = TRUE),
                                                                        '2012' = sum(vd2012, na.rm = TRUE),
@@ -104,6 +105,7 @@ ggplot(data = totalDVotesL, mapping = aes(x = reorder(factor(state), tdVotes, fu
   theme_bw()
 
 
+# Plot of outcome variable 'Total Republican Votes' by state and year
 totalRVotesL <- ElectionData %>% 
   select(state, vg2008, vg2012, vg2016) %>% group_by(state) %>% summarise('2008' = sum(vg2008, na.rm = TRUE),
                                                                           '2012' = sum(vg2012, na.rm = TRUE),

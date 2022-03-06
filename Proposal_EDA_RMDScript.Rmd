@@ -1,0 +1,257 @@
+---
+title: "Final Project"
+author:
+- 'Members : Akash Raj, Harshit Gaur, Mirav Parekh'
+- 'Professor : Dr. Amin Karimpour'
+date: 'Date : 03/06/2022'
+output:
+  word_document:
+    toc: yes
+    toc_depth: '3'
+  html_document:
+    theme: cerulean
+    highlight: kate
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+always_allow_html: yes
+subtitle: ALY 6015 - 70864
+---
+
+# Introduction
+
+Data analytics is the process of analyzing raw data and generating actionable insights. It comprises of the processes, tools and techniques of data analysis and management, including the collection, organization, and storage of data. Organizations use data analytics to gain competitive advantage by improving their performance and operational efficiency. Data analytics is performed on a variety of big data sets, like transactions, click streams, server logs, electronic health records, insurance claims, etc. Different analytical techniques and algorithms can be applied on these data sets to accomplish different objectives. These different types of analytical techniques are colloquially called:-  
+  
+1. __Descriptive analytics__ - Summarizing the data to understand past events and performance  
+2. __Diagnostic analytics__ - Investigating the root cause of certain events  
+3. __Predictive analytics__ - Predicting the future for planning  
+4. __Prescriptive analytics__ - Recommending the optimal outcomes  
+
+Irrespective of the type of analytics being performed, the basis of every method or algorithm in data analytics is descriptive/inferential statistics and machine learning. In this analysis report, we will leverage descriptive statistics to generate insights from the data.
+
+__Problems Statement :__  
+
+<a href="https://www.cardekho.com/">CarDekho.com</a> is India's leading car search venture that helps users buy cars that are right for them. It's website and app carry rich automotive content such as expert reviews, detailed specs and prices, comparisons as well as videos and pictures of all car brands and models available in India.
+
+We have the sales data of all the cars sold during the time frame of 1983 to 2020. We are going to analyse this data set in order to help them expand their business, gain and retain customers, and stand out the competitions they face. 
+
+The data set has 8128 data points with 13 features in it related to :
+
+<ul>
+<li> **Car Details -** _Car name, transmission, fuel type, number of seats, year of manufacturing._ 
+<li> **Engine Details -** _Mileage, Engine type, Torque, Maximum power in BHP._
+<li> **Sale Details -** _Selling price, kilometers driven by the car._
+</ul>
+
+Later, we will implement learning algorithms and modelling techniques to understand the patterns and achieve high quality, consistent results targeting the following points :
+
+<ul>
+<li>Identify the right prospects at the right time
+<li>Build customer loyalty.
+<li>Promote efficiency across the departments.
+<li>Marketing expenditures and supply chain management.
+</ul>
+
+# Data Analysis
+  
+__Importing the libraries required for the analysis__
+
+```{r library, message=FALSE, warning=FALSE}
+# Declaring the names of packages to be imported
+packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer", "scales", "DT")
+
+for (package in packageList) {
+  if (!package %in% rownames(installed.packages())) 
+  { install.packages(package) }
+  
+  # Import the package
+  library(package, character.only = TRUE)
+}
+```
+  
+
+__Importing the data set for analysis__  
+
+```{r importpath, echo=FALSE}
+# Import/Load the data set & set up working directory
+#location <- "~/Documents/Northeastern University/MPS Analytics/ALY 6015/"
+location <- "C:/Users/rajak/OneDrive/Desktop/Study/University/ALY6015 - Intermediate Analytics/"
+ElectionData <- read.csv(paste0(location, "Final Project/Presidential_Election_2016_Classification/Data/2016Election.csv"))
+
+setwd(paste0(location, "Final Project/Presidential_Election_2016_Classification"))
+```
+
+
+## Descriptive Statistics
+
+__Descriptive Statistics of 'Total Votes' in 2008, 2012, 2016__
+
+```{r totalVotes, message=FALSE, warning=FALSE}
+totalVotesStats <- ElectionData %>% 
+  select(v2008, v2012, v2016)
+
+# Kable Classic Method
+totalVotesStats <-  totalVotesStats %>% 
+  describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% 
+  relocate(year)
+round(totalVotesStats, 2) %>% 
+  kbl(caption = "Table 1: Descriptive Statistics for Total Votes") %>% 
+  kable_classic(html_font = "Cambria")
+```
+  
+  
+__Descriptive Statistics of 'Total Democratic Votes' in 2008, 2012, 2016__
+
+```{r totalDVotes, message=FALSE, warning=FALSE}
+totalDemocraticVotesStats <- ElectionData %>% 
+  select(vd2008, vd2012, vd2016) %>% 
+  describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% 
+  relocate(year)
+# Kable Classic Method
+round(totalDemocraticVotesStats, 2) %>% 
+  kbl(caption = "Table 2: Descriptive Statistics for Total Democratic Votes") %>% 
+  kable_classic(html_font = "Cambria")
+```
+  
+  
+__Descriptive Statistics of 'Total Republican Votes' in 2008, 2012, 2016__
+
+```{r totalRVotes, message=FALSE, warning=FALSE}
+totalRepublicanVotes <- ElectionData %>% 
+  select(vg2008, vg2012, vg2016) %>% 
+  describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% 
+  relocate(year)
+# Kable Classic Method
+round(totalRepublicanVotes, 2) %>% 
+  kbl(caption = "Table 3: Descriptive Statistics for Total Republican Votes") %>% 
+  kable_classic(html_font = "Cambria")
+```
+  
+  
+__Descriptive Statistics of 'Total Unemployment Rate' in 2011, 2012, 2013, 2014, 2015__
+
+```{r unemploymentRate, message=FALSE, warning=FALSE}
+unemploymentRate <- ElectionData %>% 
+  select(unemp11, unemp12, unemp13, unemp14, unemp15) %>% 
+  describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2011, 2012, 2013, 2014, 2015)) %>% 
+  relocate(year)
+# Kable Classic Method
+round(unemploymentRate, 2) %>% 
+  kbl(caption = "Table 4: Descriptive Statistics for Total Unemployment Rate") %>% 
+  kable_classic(html_font = "Cambria")
+```
+  
+
+## Exploratory Data Analysis
+
+__Plot of outcome variable 'Total Votes' by state and year__
+
+```{r totalVotesL, message=FALSE, warning=FALSE}
+totalVotesL <- ElectionData %>% 
+  select(state, v2008, v2012, v2016) %>% group_by(state) %>% summarise('2008' = sum(v2008, na.rm = TRUE),
+                                                                       '2012' = sum(v2012, na.rm = TRUE),
+                                                                       '2016' = sum(v2016, na.rm = TRUE)) %>%
+  gather(year, tVotes, c('2008', '2012', '2016'))
+
+ggplot(data = totalVotesL, mapping = aes(x = reorder(factor(state), tVotes, function(x) -1*sum(x)), y = tVotes, fill = year)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Total Votes by State & Year") + 
+  scale_x_discrete(name ="States") + 
+  scale_y_continuous(name = "Total Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
+  theme_bw()
+```
+  
+  
+__Plot of outcome variable 'Total Democratic Votes' by state and year__
+
+```{r totalDVotesL, message=FALSE, warning=FALSE}
+totalDVotesL <- ElectionData %>% 
+  select(state, vd2008, vd2012, vd2016) %>% group_by(state) %>% summarise('2008' = sum(vd2008, na.rm = TRUE),
+                                                                       '2012' = sum(vd2012, na.rm = TRUE),
+                                                                       '2016' = sum(vd2016, na.rm = TRUE)) %>%
+  gather(year, tdVotes, c('2008', '2012', '2016'))
+
+ggplot(data = totalDVotesL, mapping = aes(x = reorder(factor(state), tdVotes, function(x) -1*sum(x)), y = tdVotes, fill = year)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Total Democrat Votes by State & Year") + 
+  scale_x_discrete(name ="States") + 
+  scale_y_continuous(name = "Total Democrat Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
+  theme_bw()
+```
+  
+  
+__Plot of outcome variable 'Total Republican Votes' by state and year__
+
+```{r totalRVotesL, message=FALSE, warning=FALSE}
+totalRVotesL <- ElectionData %>% 
+  select(state, vg2008, vg2012, vg2016) %>% group_by(state) %>% summarise('2008' = sum(vg2008, na.rm = TRUE),
+                                                                          '2012' = sum(vg2012, na.rm = TRUE),
+                                                                          '2016' = sum(vg2016, na.rm = TRUE)) %>%
+  gather(year, tgVotes, c('2008', '2012', '2016'))
+
+ggplot(data = totalRVotesL, mapping = aes(x = reorder(factor(state), tgVotes, function(x) -1*sum(x)), y = tgVotes, fill = year)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Total Republican Votes by State & Year") + 
+  scale_x_discrete(name ="States") + 
+  scale_y_continuous(name = "Total Republican Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
+  theme_bw()
+```
+  
+  
+# Conclusion
+
+The data set of car sales by <a href = "https://www.cardekho.com/">CarDekho.com</a> has provided various insights about the types of cars sold in the car industry and the patterns between them. The data set contains 8128 data points along with 13 features related to car details, engine details, and sale details.
+
+<ol>
+<li>Data cleaning and data pre-processing are important to prepare the data in the correct format before building the regression model. We extracted numerical values from text fields like engine, mileage, torque, along with brand information from car name.
+<li>Unnecessary data that skew the results were also filtered out.
+<li>To ensure that the numerical variables are not skewed, it's crucial to remove or impute the missing values and outliers. We imputed the missing values using kNN imputation method.
+<li>Feature engineering and exploratory data analysis were performed to gather more meaningful information from the data. 
+<li>Derived variables were created using the existing features and skewed variables were scaled. 
+<li>Apart from this, various data visualization, like box plot, frequency plot, histogram, pair plot, correlation matrix and scatter plot were created to understand the uni-variate distribution and multi-variate relationship of the data.
+<li>Once the data cleaning and exploratory analysis is performed, hypothesis testing is performed to validate certain assumptions on the sample data.
+</ol>
+
+We used one sample t-Test and two sample t-Test to compare the variables 'km_driven' and 'selling_price' with the overall sample average and compare across two groups respectively. Based on the exploratory analysis performed earlier, we wanted to validate the following hypotheis using t-test:  
+
+1. True Mean of kilometers driven by ‘Individual’ seller-type is greater than the overall average
+2. True Mean of selling price of cars sold by ‘Dealer’ seller-type is greater than the overall average
+3. True Mean of kilometers driven by ‘First Owner’ owner-type is less than the overall average
+4. True Mean of selling price of cars sold by ‘First Owner’ owner-type is greater than the overall average
+5. Mean kilometers driven for small cars is not equal to the kilometers driven for medium cars
+6. Mean kilometers driven for dealers is not equal to the kilometers driven for trustmark dealer  
+
+In the first five test, based on the t-statistic and p-value we obtained sufficient evidences to reject the NULL hypothesis, however in the last test, we did not obtain enough evidence to reject the NULL hypothesis.
+
+We also performed Chi-Square Test and One-wav ANOVA test on categorical and continuous variables in our data set. The p-value of all the tests except the one where groups of Owner and Engine were taken came out to be very less than our assumed alpha = 0.05. Therefore, we were able to reject the Null Hypotheses in all but one tests successfully.
+
+Lastly, we performed Regression Analysis on our data set to model the prices of cars listed on CarDekho.com. We log transformed the Selling price variable to convert it into normal distribution and used lm() function to build the linear regression model. 
+
+# Bibliography
+
+Vehicle dataset. (2020, October 24). Kaggle. https://www.kaggle.com/nehalbirla/vehicle-dataset-from-cardekho
+
+Xie, Y. C. D. (2021, October 7). R Markdown Cookbook. R Markdown. Retrieved October 30, 2021, from https://bookdown.org/yihui/rmarkdown-cookbook/
+
+Bluman, A. (2017). Elementary Statistics: A Step By Step Approach (10th ed.). McGraw-Hill Education.
+
+Kabacoff, R., I. (2022). R in Action, Third Edition. Manning.
+
+CarDekho. (2021). About Us | CarDekho.com. https://www.cardekho.com/info/about_us
+
+F. (2021, April 2). tidyverse in r – Complete Tutorial. R-Bloggers. Retrieved October 30, 2021, from https://www.r-bloggers.com/2021/04/tidyverse-in-r-complete-tutorial/
+
+D. (2021a, March 22). Data Analytics for Car Dealers. Automated Metrics. https://www.automatedmetrics.io/data-analytics-for-car-dealers/
+
+# Appendix
+
+The RMD file of the analysis is included with the analysis report.
