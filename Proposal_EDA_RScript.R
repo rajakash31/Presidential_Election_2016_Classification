@@ -136,7 +136,7 @@ ggplot(data = totalVotesL) +
 ggplot(data = totalDVotesL) +
   geom_boxplot(mapping = aes(tdVotes, fill = year), notch = TRUE) + 
   theme(axis.ticks = element_blank(), axis.text.y = element_blank()) +
-  labs(title = "Boxplot of Total Votes by Year") + 
+  labs(title = "Boxplot of Total Democrat Votes by Year") + 
   scale_x_continuous(name = "Total Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
   theme_bw()
 
@@ -144,6 +144,6 @@ ggplot(data = totalDVotesL) +
 ggplot(data = totalRVotesL) +
   geom_boxplot(mapping = aes(tgVotes, fill = year), notch = TRUE) + 
   theme(axis.ticks = element_blank(), axis.text.y = element_blank()) +
-  labs(title = "Boxplot of Total Votes by Year") + 
+  labs(title = "Boxplot of Total Republican Votes by Year") + 
   scale_x_continuous(name = "Total Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
   theme_bw()
