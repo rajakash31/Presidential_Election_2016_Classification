@@ -1,7 +1,7 @@
 #-------- ALY6015_FinalProject_Proposal --------#
 
 # Declaring the names of packages to be imported
-packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer")
+packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer", "scales")
 
 for (package in packageList) {
   if (!package %in% rownames(installed.packages())) 
