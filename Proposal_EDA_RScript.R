@@ -20,6 +20,7 @@ ElectionData <- read.csv(paste0(location, "Final Project/Presidential_Election_2
 glimpse(ElectionData)
 
 
+# ------------------------ Descriptive Statistics ------------------------ #
 # Descriptive Statistics of 'Total Votes' in 2008, 2012, 2016
 totalVotesStats <- ElectionData %>% 
   select(v2008, v2012, v2016)
@@ -76,6 +77,7 @@ round(unemploymentRate[vars], 2) %>%
   kable_classic(html_font = "Cambria")
 
 
+# ------------------------ Exploratory Data Analysis ------------------------ #
 # Plot of outcome variable 'Total Votes' by state and year
 totalVotesL <- ElectionData %>% 
   select(state, v2008, v2012, v2016) %>% group_by(state) %>% summarise('2008' = sum(v2008, na.rm = TRUE),
@@ -121,4 +123,27 @@ ggplot(data = totalRVotesL, mapping = aes(x = reorder(factor(state), tgVotes, fu
   theme_bw()
 
 
-           
+# ------------------------ Subgroup Analysis ------------------------ #
+# Boxplot of total votes by year
+ggplot(data = totalVotesL) +
+  geom_boxplot(mapping = aes(tVotes, fill = year), notch = TRUE) + 
+  theme(axis.ticks = element_blank(), axis.text.y = element_blank()) +
+  labs(title = "Boxplot of Total Votes by Year") + 
+  scale_x_continuous(name = "Total Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
+  theme_bw()
+
+# Boxplot of total democrat votes by year
+ggplot(data = totalDVotesL) +
+  geom_boxplot(mapping = aes(tdVotes, fill = year), notch = TRUE) + 
+  theme(axis.ticks = element_blank(), axis.text.y = element_blank()) +
+  labs(title = "Boxplot of Total Votes by Year") + 
+  scale_x_continuous(name = "Total Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
+  theme_bw()
+
+# Boxplot of total republican votes by year
+ggplot(data = totalRVotesL) +
+  geom_boxplot(mapping = aes(tgVotes, fill = year), notch = TRUE) + 
+  theme(axis.ticks = element_blank(), axis.text.y = element_blank()) +
+  labs(title = "Boxplot of Total Votes by Year") + 
+  scale_x_continuous(name = "Total Votes", labels = label_number(suffix = " M", scale = 1e-6)) +
+  theme_bw()
