@@ -23,18 +23,19 @@ glimpse(ElectionData)
 # Descriptive Statistics of 'Total Votes' in 2008, 2012, 2016
 totalVotesStats <- ElectionData %>% 
   select(v2008, v2012, v2016)
-# Stargazer Method
-stargazer(totalVotesStats, type = "text", title = "Table 1: Descriptive Statistics for Total Votes", 
-          out = "total_votes_table.txt", iqr = TRUE, median = TRUE, style = "jpam")
-# Write Table Method
-write.table(totalVotesStats, file = "Documents/Northeastern University/MPS Analytics/ALY 6015/Final Project/Presidential_Election_2016_Classification/total_votes_table_doc.doc", sep = ",")
+# # Stargazer Method
+# stargazer(totalVotesStats, type = "text", title = "Table 1: Descriptive Statistics for Total Votes", 
+#           out = "total_votes_table.txt", iqr = TRUE, median = TRUE, style = "jpam")
+# # Write Table Method
+# write.table(totalVotesStats, file = "Documents/Northeastern University/MPS Analytics/ALY 6015/Final Project/Presidential_Election_2016_Classification/total_votes_table_doc.doc", sep = ",")
 
 # Kable Classic Method
+vars <- c(1,3,4,5,6,9,10,11,15,16,17)
 totalVotesStats <-  totalVotesStats %>% 
   describe(quant = c(.25, .75), IQR = TRUE) %>% 
   mutate(year = c(2008, 2012, 2016)) %>% 
   relocate(year)
-round(totalVotesStats, 2) %>% 
+round(totalVotesStats[vars], 2) %>% 
   kbl(caption = "Table 1: Descriptive Statistics for Total Votes") %>% 
   kable_classic(html_font = "Cambria")
 
@@ -46,7 +47,7 @@ totalDemocraticVotesStats <- ElectionData %>%
   mutate(year = c(2008, 2012, 2016)) %>% 
   relocate(year)
 # Kable Classic Method
-round(totalDemocraticVotesStats, 2) %>% 
+round(totalDemocraticVotesStats[vars], 2) %>% 
   kbl(caption = "Table 2: Descriptive Statistics for Total Democratic Votes") %>% 
   kable_classic(html_font = "Cambria")
 
@@ -58,7 +59,7 @@ totalRepublicanVotes <- ElectionData %>%
   mutate(year = c(2008, 2012, 2016)) %>% 
   relocate(year)
 # Kable Classic Method
-round(totalRepublicanVotes, 2) %>% 
+round(totalRepublicanVotes[vars], 2) %>% 
   kbl(caption = "Table 3: Descriptive Statistics for Total Republican Votes") %>% 
   kable_classic(html_font = "Cambria")
 
@@ -70,7 +71,7 @@ unemploymentRate <- ElectionData %>%
   mutate(year = c(2011, 2012, 2013, 2014, 2015)) %>% 
   relocate(year)
 # Kable Classic Method
-round(unemploymentRate, 2) %>% 
+round(unemploymentRate[vars], 2) %>% 
   kbl(caption = "Table 4: Descriptive Statistics for Total Unemployment Rate") %>% 
   kable_classic(html_font = "Cambria")
 
