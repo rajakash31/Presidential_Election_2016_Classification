@@ -12,9 +12,10 @@ for (package in packageList) {
 }
 
 # Import/Load the data set
-#location <- "~/Documents/Northeastern University/MPS Analytics/ALY 6015/"
-location <- "C:/Users/rajak/OneDrive/Desktop/Study/University/ALY6015 - Intermediate Analytics/Final Project/Presidential_Election_2016_Classification/"
-ElectionData <- read.csv(paste0(location, "Data/2016Election.csv"))
+location_harshit <- "~/Documents/Northeastern University/MPS Analytics/ALY 6015/Final Project/Presidential_Election_2016_Classification/"
+location_akash <- "C:/Users/rajak/OneDrive/Desktop/Study/University/ALY6015 - Intermediate Analytics/Final Project/Presidential_Election_2016_Classification/"
+
+ElectionData <- read.csv(paste0(ifelse(!dir.exists(paths = location_harshit), location_akash, location_harshit), "Data/2016Election.csv"))
 
 # Get a Glimpse/View of the data set
 glimpse(ElectionData)
