@@ -1,7 +1,7 @@
 #----------------------------------- ALY6015 FinalProject Initial Analysis -------------------------------#
 
 # Declaring the names of packages to be imported
-packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer", "scales")
+packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer", "scales", "glmnet", "Metrics", "caret", "leaps", "MASS")
 
 for (package in packageList) {
   if (!package %in% rownames(installed.packages())) 
@@ -39,16 +39,175 @@ ElectionData <- ElectionData %>% inner_join(election2020, by = c("c_fips" = "cou
 ElectionData <- ElectionData %>% inner_join(region, by = c("state" = "state.code"))
 
 
+################################################################
+# Checking the records with missing/NA values
+################################################################
+# Since, libertarian feature has almost all the data points as NA. We're removing it for now to check other NA cases
+ElectionData <- ElectionData %>% select(-libertarian)
+ElectionData %>% 
+  filter(!complete.cases(ElectionData)) %>% 
+  View()
+
+# Retrieving the names of features with missing values.
+missingValuesCols <- names(which(colSums(is.na(ElectionData)) > 0))
+
+# Imputing missing values with their respective features' mean value
+for(i in 1:ncol(ElectionData)) {
+  ifelse(is.numeric(ElectionData[,i]), 
+    ElectionData[is.na(ElectionData[,i]), i] <- mean(ElectionData[,i], na.rm = TRUE),
+    ifelse(is.character(ElectionData[,i]), "NULL", 0)
+  )
+}
+
+# Factorize these 'Quality Assessment Texts' in the data set
+ElectionData[sapply(ElectionData, is.character)] <- lapply(ElectionData[sapply(ElectionData, is.character)], as.factor)
+
 
 ################################################################
 # Correlation
 ################################################################
-
-numIntFeatures_AmesHousing <- AmesHousing[sapply(AmesHousing, is.numeric)]
-View(round(cor(numIntFeatures_AmesHousing, use = "pairwise"), 5))
-corrplot(cor(numIntFeatures_AmesHousing, use = "pairwise"), tl.cex = 0.7, type = "upper",
+# numIntFeatures_ElectionData <- ElectionData[sapply(ElectionData, is.numeric)]
+corrFeatures_ElectionData <- ElectionData %>% 
+  select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016)
+View(round(cor(corrFeatures_ElectionData, use = "pairwise"), 5))
+corrplot(cor(corrFeatures_ElectionData, use = "pairwise"), tl.cex = 0.8, type = "upper",
          title = "Correlation Plot", mar = c(0,0,1,0), 
-         col = brewer.pal(n = ncol(numIntFeatures_AmesHousing), name = "RdYlBu"))
+         col = brewer.pal(n = ncol(corrFeatures_ElectionData), name = "RdYlBu"))
 
+
+
+########## LASSO Regularization
+
+################################################################
+# Split data into train and test data
+################################################################
+
+lassoFittingFeatures <-  ElectionData[sapply(ElectionData, is.numeric)]
+
+set.seed(454)
+trainIndex <- createDataPartition(lassoFittingFeatures$pd2016, p = 0.80, list = FALSE)
+train <- lassoFittingFeatures[trainIndex,]
+test <- lassoFittingFeatures[-trainIndex,]
+
+train_x <- model.matrix(pd2016 ~ ., train)[, -1]
+test_x <- model.matrix(pd2016 ~ ., test)[, -1]
+
+train_y <- train$pd2016
+test_y <- test$pd2016
+
+
+################################################################
+# Find best value of Lambda using Cross-Validation
+################################################################
+set.seed(454)
+cv.lasso <- cv.glmnet(train_x, train_y)
+plot(cv.lasso)
+
+
+# Fit the model on training set using lambda.min 
+model.lasso.min <- glmnet(train_x, train_y, alpha = 1, lambda = cv.lasso$lambda.min)
+
+# Display Regression Coefficients
+coef(model.lasso.min)
+
+# Fit the model on training set using lambda.1se
+model.lasso.1se <- glmnet(train_x, train_y, alpha = 1, lambda = cv.lasso$lambda.1se)
+
+# Display Regression Coefficients
+coef(model.lasso.1se)
+
+
+################################################################
+# Make Prediction on the Training Data
+################################################################
+predict.lasso.train.1se <- predict(model.lasso.1se, newx = train_x)
+lasso.train.rmse <- rmse(train_y, predict.lasso.train.1se)
+
+
+################################################################
+# Make Prediction on the Testing Data
+################################################################
+predict.lasso.test.1se <- predict(model.lasso.1se, newx = test_x)
+lasso.test.rmse <- rmse(test_y, predict.lasso.test.1se)
+
+lasso.train.rmse
+lasso.test.rmse
+
+
+
+################################################################
+# Regression Fit - Model the data
+################################################################
+regressionFittingFeatures <- ElectionData[sapply(ElectionData, is.numeric)]
+
+fit <- lm(formula = pd2016 ~ ., data = regressionFittingFeatures)
+summary(fit)
+
+# Check 'Perfect Multi-Collinearity' because of "NA" values in summary of the fit model.
+vif(fit)
+alias(fit)
+
+
+######### First Batch of Variables Removed #########
+regressionFittingFeatures <-  regressionFittingFeatures %>% 
+  dplyr::select(-unemp15, -unemp14, -unemp13, -unemp12, -unemp11, -nmig11)
+fit <- lm(formula = pd2016 ~ ., data = regressionFittingFeatures)
+summary(fit)
+
+# Check 'Perfect Multi-Collinearity' because of "NA" values in summary of the fit model.
+vif(fit)
+alias(fit)
+
+
+######### Second Batch of Variables Removed #########
+regressionFittingFeatures <-  regressionFittingFeatures %>% 
+  dplyr::select(-nmig12, -nmig13, -nmig14, -nmig15, -adkle025, -adkle026)
+fit <- lm(formula = pd2016 ~ ., data = regressionFittingFeatures)
+summary(fit)
+
+# Check 'Perfect Multi-Collinearity' because of "NA" values in summary of the fit model.
+vif(fit)
+alias(fit)
+
+
+######### Third Batch of Variables Removed #########
+regressionFittingFeatures <-  regressionFittingFeatures %>% 
+  dplyr::select(-adkle049, -adkxe008, -adkxe010, -year)
+fit <- lm(formula = pd2016 ~ ., data = regressionFittingFeatures)
+summary(fit)
+
+# Check 'Perfect Multi-Collinearity' because of "NA" values in summary of the fit model.
+vif(fit)
+alias(fit)
+
+
+######### Third Batch of Variables Removed #########
+regressionFittingFeatures <-  regressionFittingFeatures %>% 
+  dplyr::select(pd2016, v2016, vd2016, pg2016, ppd2016, pd2012, pg2012)
+fit <- lm(formula = pd2016 ~ ., data = regressionFittingFeatures)
+summary(fit)
+
+# Check 'Perfect Multi-Collinearity' because of "NA" values in summary of the fit model.
+vif(fit)
+alias(fit)
+
+
+################################################################
+# Feature Selection
+################################################################
+
+# Stepwise Stepwise Selection
+stepAIC(fit, direction = "both")
+
+# Regression Model Fit using Features from Stepwise Stepwise Selection
+fit <- lm(formula = pd2016 ~ v2016 + vd2016 + vg2016 + pg2016 + ppd2016 + 
+            v2012 + vd2012 + vg2012 + pd2012 + pg2012 + diff2012 + vd2008 + 
+            emp15 + lforce12 + unrate12 + lforce11 + pcpv15 + pp51715 + 
+            plhs + phsd + pbdh + imig12 + imig15 + dmig14 + adkle001 + 
+            adkle002 + adkle006 + adkle015 + adkle019 + adkle028 + adkle030 + 
+            adkle033 + adkle036 + adkle039 + adkle041 + adkle042 + adkle043 + 
+            adkle045 + adkxe002 + adkxe006 + adple030 + adple034 + adple039 + 
+            adple055, data = regressionFittingFeatures)
+summary(fit)
 
 
