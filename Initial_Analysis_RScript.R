@@ -15,7 +15,8 @@ for (package in packageList) {
 location_harshit <- "~/Documents/Northeastern University/MPS Analytics/ALY 6015/Final Project/Presidential_Election_2016_Classification/"
 location_akash <- "C:/Users/rajak/OneDrive/Desktop/Study/University/ALY6015 - Intermediate Analytics/Final Project/Presidential_Election_2016_Classification/"
 
-ElectionData <- read.csv(paste0(ifelse(!dir.exists(paths = location_harshit), location_akash, location_harshit), "Data/2016Election.csv"))
+location <- ifelse(!dir.exists(paths = location_harshit), location_akash, location_harshit)
+ElectionData <- read.csv(paste0(location, "Data/2016Election.csv"))
 
 # Get a Glimpse/View of the data set
 glimpse(ElectionData)
@@ -36,5 +37,18 @@ ElectionData$c_fips <- as.factor(ElectionData$c_fips)
 ElectionData <- ElectionData %>% inner_join(election2020, by = c("c_fips" = "county_fips"))
 
 ElectionData <- ElectionData %>% inner_join(region, by = c("state" = "state.code"))
+
+
+
+################################################################
+# Correlation
+################################################################
+
+numIntFeatures_AmesHousing <- AmesHousing[sapply(AmesHousing, is.numeric)]
+View(round(cor(numIntFeatures_AmesHousing, use = "pairwise"), 5))
+corrplot(cor(numIntFeatures_AmesHousing, use = "pairwise"), tl.cex = 0.7, type = "upper",
+         title = "Correlation Plot", mar = c(0,0,1,0), 
+         col = brewer.pal(n = ncol(numIntFeatures_AmesHousing), name = "RdYlBu"))
+
 
 
