@@ -63,12 +63,86 @@ for(i in 1:ncol(ElectionData)) {
 ElectionData[sapply(ElectionData, is.character)] <- lapply(ElectionData[sapply(ElectionData, is.character)], as.factor)
 
 
+###########################################################################################
+#                                     Exploratory Data Analysis                           #
+###########################################################################################
+
+ElectionDataEDA <- ElectionData %>% 
+  dplyr::select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016, geograhic.region)
+
+
+percDemocraticVotesStats <- ElectionDataEDA %>% 
+  dplyr::select(pd2008, pd2012, pd2016) %>% 
+  describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% 
+  relocate(year)
+
+percRepublicanVotesStats <- ElectionDataEDA %>% 
+  dplyr::select(pg2008, pg2012, pg2016) %>% 
+  describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% 
+  relocate(year)
+
+
+percRepublicanVotesStatsSouth <- ElectionDataEDA %>% 
+  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "South") %>% 
+  dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "South")
+
+percRepublicanVotesStatsWest <- ElectionDataEDA %>% 
+  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "West") %>% 
+  dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "West")
+
+percRepublicanVotesStatsNE <- ElectionDataEDA %>% 
+  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "Northeast") %>% 
+  dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "Northeast")
+
+percRepublicanVotesStatsMid <- ElectionDataEDA %>% 
+  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "Midwest") %>% 
+  dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "Midwest")
+
+
+percRepublicanVotesStatReg <- rbind(percRepublicanVotesStatsSouth, percRepublicanVotesStatsWest, percRepublicanVotesStatsNE,
+                                    percRepublicanVotesStatsMid)
+
+
+# Plot of outcome variable 'Total Democratic Votes' by state and year
+percDVotesL <- ElectionDataEDA %>% 
+  dplyr::select(geograhic.region, pd2008, pd2012, pd2016) %>% group_by(geograhic.region) %>% summarise('2008' = mean(pd2008, na.rm = TRUE),
+                                                                          '2012' = mean(pd2012, na.rm = TRUE),
+                                                                          '2016' = mean(pd2016, na.rm = TRUE)) %>%
+  gather(year, pdVotes, c('2008', '2012', '2016'))
+
+ggplot(data = percDVotesL, mapping = aes(x = reorder(factor(geograhic.region), pdVotes, function(x) -1*sum(x)), y = pdVotes, fill = year)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Percentage Democrat Votes by Region & Year") + 
+  scale_x_discrete(name ="Region") + 
+  scale_y_continuous(name = "Percent Democrat Votes") +
+  theme_bw()
+
+
+# Plot of outcome variable 'Total Republican Votes' by state and year
+percRVotesL <- ElectionDataEDA %>% 
+  dplyr::select(geograhic.region, pd2008, pd2012, pd2016) %>% group_by(geograhic.region) %>% summarise('2008' = mean(pd2008, na.rm = TRUE),
+                                                                                                       '2012' = mean(pd2012, na.rm = TRUE),
+                                                                                                       '2016' = mean(pd2016, na.rm = TRUE)) %>%
+  gather(year, pgVotes, c('2008', '2012', '2016'))
+
+ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), tgVotes, function(x) -1*sum(x)), y = pgVotes, fill = year)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  labs(title = "Percent Republican Votes by Region & Year") + 
+  scale_x_discrete(name ="Region") + 
+  scale_y_continuous(name = "Percent Republican Votes") +
+  theme_bw()
+
+
+
 ################################################################
 # Correlation
 ################################################################
 # numIntFeatures_ElectionData <- ElectionData[sapply(ElectionData, is.numeric)]
 corrFeatures_ElectionData <- ElectionData %>% 
-  select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016)
+  dplyr::select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016)
+
 View(round(cor(corrFeatures_ElectionData, use = "pairwise"), 5))
 corrplot(cor(corrFeatures_ElectionData, use = "pairwise"), tl.cex = 0.8, type = "upper",
          title = "Correlation Plot", mar = c(0,0,1,0), 
