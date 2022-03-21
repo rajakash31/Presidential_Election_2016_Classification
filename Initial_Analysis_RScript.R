@@ -51,6 +51,8 @@ election2020$county_fips <- as.factor(election2020$county_fips)
 ElectionData$c_fips <- as.factor(ElectionData$c_fips)
 ElectionData <- ElectionData %>% inner_join(election2020, by = c("c_fips" = "county_fips"))
 
+threeLineTable(ElectionData[1:5, 157:165], "Table 2: New variables added to the master data", "", "Appended data")
+
 ElectionData <- ElectionData %>% inner_join(region, by = c("state" = "state.code"))
 
 
