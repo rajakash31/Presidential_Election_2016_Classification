@@ -136,9 +136,10 @@ ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), t
 
 
 
-################################################################
-# Correlation
-################################################################
+
+###########################################################################################
+#                                     Correlation                                         #
+###########################################################################################
 # numIntFeatures_ElectionData <- ElectionData[sapply(ElectionData, is.numeric)]
 corrFeatures_ElectionData <- ElectionData %>% 
   dplyr::select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016)
@@ -150,12 +151,13 @@ corrplot(cor(corrFeatures_ElectionData, use = "pairwise"), tl.cex = 0.8, type = 
 
 
 
-########## LASSO Regularization
+###########################################################################################
+#                             LASSO Regularization                                        #
+###########################################################################################
 
 ################################################################
 # Split data into train and test data
 ################################################################
-
 lassoFittingFeatures <-  ElectionData[sapply(ElectionData, is.numeric)]
 
 set.seed(454)
