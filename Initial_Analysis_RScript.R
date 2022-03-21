@@ -1,7 +1,8 @@
 #----------------------------------- ALY6015 FinalProject Initial Analysis -------------------------------#
 
 # Declaring the names of packages to be imported
-packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer", "scales", "glmnet", "Metrics", "caret", "leaps", "MASS")
+packageList <- c("tidyverse", "vtable", "RColorBrewer", "corrplot", "car", "psych", "stargazer", "scales", "glmnet",
+                 "Metrics", "caret", "leaps", "MASS", "flextable")
 
 for (package in packageList) {
   if (!package %in% rownames(installed.packages())) 
@@ -19,8 +20,19 @@ location <- ifelse(!dir.exists(paths = location_harshit), location_akash, locati
 ElectionData <- read.csv(paste0(location, "Data/2016Election.csv"))
 
 # Get a Glimpse/View of the data set
-glimpse(ElectionData)
+#glimpse(ElectionData)
 
+# Function to save table as 3 line format
+threeLineTable <- function(df, title, footer, file_name){
+  ft <- flextable(df)
+  ft <- theme_booktabs(ft)
+  ft <- add_footer_lines(ft, footer)
+  ft <- flextable::color(ft, part = "footer", color = "#666666")
+  ft <- set_caption(ft, caption = title)
+  save_as_docx(ft, path =  paste0(location, "/Tables/", file_name, ".docx")) 
+}
+
+threeLineTable(ElectionData[1:5, 4:11], "Table 1: Snapshot of Data", "Snapshot of Election Data Sample", "Data Snapshot")
 
 # ------------------------------------- Merging External Data sets ----------------------------------- #
 # Reading new external data set
@@ -28,6 +40,9 @@ population <- read.csv(paste0(location, "Data/USPopulationByCounty.csv"))
 election2020 <- read.csv(paste0(location, "Data/2020ElectionResults.csv"))
 region <- read.csv(paste0(location, "Data/Regions.csv"))
 
+threeLineTable(population[1:5, 2:8], "Table 2: Snapshot of external population data", "Snapshot of population data sample", "Population Snapshot")
+threeLineTable(election2020[1:5, ], "Table 3: Snapshot of external 2020 election results data", "Snapshot of 2020 election results data", "Election 2020 Snapshot")
+threeLineTable(region[1:5, ], "Table 4: Sample of additional region variable created", "", "Region Snapshot")
 
 # Combining the external data sets with the original election data sets
 ElectionData <- ElectionData %>% inner_join(population, by = c("county", "state"))
@@ -43,10 +58,10 @@ ElectionData <- ElectionData %>% inner_join(region, by = c("state" = "state.code
 # Checking the records with missing/NA values
 ################################################################
 # Since, libertarian feature has almost all the data points as NA. We're removing it for now to check other NA cases
-ElectionData <- ElectionData %>% select(-libertarian)
-ElectionData %>% 
-  filter(!complete.cases(ElectionData)) %>% 
-  View()
+ElectionData <- ElectionData %>% dplyr::select(-libertarian)
+missingRecords <- ElectionData %>% filter(!complete.cases(ElectionData))
+
+threeLineTable(missingRecords[, 4:11], "Table 5: Records with missing data", "", "Missing Data")
 
 # Retrieving the names of features with missing values.
 missingValuesCols <- names(which(colSums(is.na(ElectionData)) > 0))
@@ -77,33 +92,37 @@ percDemocraticVotesStats <- ElectionDataEDA %>%
   mutate(year = c(2008, 2012, 2016)) %>% 
   relocate(year)
 
+threeLineTable(percDemocraticVotesStats, "Table 6: Descriptive statistics of Democratic party %votes by year", "", "Democratic votes")
+
 percRepublicanVotesStats <- ElectionDataEDA %>% 
   dplyr::select(pg2008, pg2012, pg2016) %>% 
   describe(quant = c(.25, .75), IQR = TRUE) %>% 
   mutate(year = c(2008, 2012, 2016)) %>% 
   relocate(year)
 
+threeLineTable(percRepublicanVotesStats, "Table 7: Descriptive statistics of Republican party %votes by year", "", "Republican votes")
 
 percRepublicanVotesStatsSouth <- ElectionDataEDA %>% 
-  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "South") %>% 
+  dplyr::select(geograhic.region, pg2016) %>% filter(geograhic.region == "South") %>% 
   dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "South")
 
 percRepublicanVotesStatsWest <- ElectionDataEDA %>% 
-  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "West") %>% 
+  dplyr::select(geograhic.region, pg2016) %>% filter(geograhic.region == "West") %>% 
   dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "West")
 
 percRepublicanVotesStatsNE <- ElectionDataEDA %>% 
-  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "Northeast") %>% 
+  dplyr::select(geograhic.region, pg2016) %>% filter(geograhic.region == "Northeast") %>% 
   dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "Northeast")
 
 percRepublicanVotesStatsMid <- ElectionDataEDA %>% 
-  dplyr::select(geograhic.region, pg2008, pg2012, pg2016) %>% filter(geograhic.region == "Midwest") %>% 
+  dplyr::select(geograhic.region, pg2016) %>% filter(geograhic.region == "Midwest") %>% 
   dplyr::select(-geograhic.region) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% mutate(vars = "Midwest")
 
 
 percRepublicanVotesStatReg <- rbind(percRepublicanVotesStatsSouth, percRepublicanVotesStatsWest, percRepublicanVotesStatsNE,
                                     percRepublicanVotesStatsMid)
 
+threeLineTable(percRepublicanVotesStatReg, "Table 7: Descriptive statistics of Republican party %votes by region", "", "Republican votes region")
 
 # Plot of outcome variable 'Total Democratic Votes' by state and year
 percDVotesL <- ElectionDataEDA %>% 
@@ -127,7 +146,7 @@ percRVotesL <- ElectionDataEDA %>%
                                                                                                        '2016' = mean(pd2016, na.rm = TRUE)) %>%
   gather(year, pgVotes, c('2008', '2012', '2016'))
 
-ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), tgVotes, function(x) -1*sum(x)), y = pgVotes, fill = year)) +
+ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), pgVotes, function(x) -1*sum(x)), y = pgVotes, fill = year)) +
   geom_bar(position = "dodge", stat = "identity") +
   labs(title = "Percent Republican Votes by Region & Year") + 
   scale_x_discrete(name ="Region") + 
