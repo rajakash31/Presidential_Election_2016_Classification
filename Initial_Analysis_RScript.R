@@ -165,9 +165,11 @@ ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), p
 corrFeatures_ElectionData <- ElectionData %>% 
   dplyr::select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016)
 
-View(round(cor(corrFeatures_ElectionData, use = "pairwise"), 5))
-corrplot(cor(corrFeatures_ElectionData, use = "pairwise"), tl.cex = 0.8, type = "upper",
-         title = "Correlation Plot", mar = c(0,0,1,0), 
+correlationTable <- round(cor(corrFeatures_ElectionData, use = "pairwise"), 5)
+
+threeLineTable(as.data.frame.matrix(correlationTable), "Table 8: Correlation Table of Numerical Features", "", "Correlation Table")
+
+corrplot(cor(corrFeatures_ElectionData, use = "pairwise"), tl.cex = 1.2, type = "upper",
          col = brewer.pal(n = ncol(corrFeatures_ElectionData), name = "RdYlBu"))
 
 
@@ -200,12 +202,22 @@ set.seed(454)
 cv.lasso <- cv.glmnet(train_x, train_y)
 plot(cv.lasso)
 
+################################################################
+# Optimal Value of Lambda; Minimizes the Prediction Error
+# Lambda Min - Minimizes out of sample loss
+# Lambda 1SE - Largest value of Lambda within 1 Standard Error of Lambda Min.
+################################################################
+log(cv.lasso$lambda.min)
+log(cv.lasso$lambda.1se)
+
 
 # Fit the model on training set using lambda.min 
 model.lasso.min <- glmnet(train_x, train_y, alpha = 1, lambda = cv.lasso$lambda.min)
 
 # Display Regression Coefficients
 coef(model.lasso.min)
+
+threeLineTable(cbind(rownames(coef(model.lasso.min)), as.data.frame.matrix(round(coef(model.lasso.min), 4))), "Table 9: Lasso Regression on Training Data set using Lambda at 1 Standard Error", "", "Lasso_Regression_Table")
 
 # Fit the model on training set using lambda.1se
 model.lasso.1se <- glmnet(train_x, train_y, alpha = 1, lambda = cv.lasso$lambda.1se)
@@ -238,12 +250,13 @@ lasso.test.rmse
 regressionFittingFeatures <- ElectionData[sapply(ElectionData, is.numeric)]
 
 fit <- lm(formula = pd2016 ~ ., data = regressionFittingFeatures)
-summary(fit)
+lm.summary <- summary(fit)
 
 # Check 'Perfect Multi-Collinearity' because of "NA" values in summary of the fit model.
 vif(fit)
 alias(fit)
 
+threeLineTable(cbind(rownames(lm.summary$coefficients), as.data.frame(round(lm.summary$coefficients, 4))), "Table 10: Linear Regression Model on Training Data set", "", "Linear_Regression_Table")
 
 ######### First Batch of Variables Removed #########
 regressionFittingFeatures <-  regressionFittingFeatures %>% 
