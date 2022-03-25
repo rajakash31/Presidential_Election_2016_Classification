@@ -20,7 +20,7 @@ location <- ifelse(!dir.exists(paths = location_harshit), location_akash, locati
 ElectionData <- read.csv(paste0(location, "Data/2016Election.csv"))
 
 # Get a Glimpse/View of the data set
-#glimpse(ElectionData)
+glimpse(ElectionData)
 
 # Function to save table as 3 line format
 threeLineTable <- function(df, title, footer, file_name){
@@ -78,6 +78,14 @@ for(i in 1:ncol(ElectionData)) {
 
 # Factorize these 'Quality Assessment Texts' in the data set
 ElectionData[sapply(ElectionData, is.character)] <- lapply(ElectionData[sapply(ElectionData, is.character)], as.factor)
+
+
+###########################################################################################
+#                               Creating Variables for 2020                               #
+###########################################################################################
+# Creating variables for 2020 Predictions
+ElectionData$pd2020 <- round(ElectionData$democrats / (ElectionData$democrats + ElectionData$green + ElectionData$other + ElectionData$republican), 2)
+ElectionData$pg2020 <- round(ElectionData$republican / (ElectionData$democrats + ElectionData$green + ElectionData$other + ElectionData$republican), 2)
 
 
 ###########################################################################################
@@ -243,7 +251,6 @@ lasso.train.rmse
 lasso.test.rmse
 
 
-
 ################################################################
 # Regression Fit - Model the data
 ################################################################
@@ -257,6 +264,9 @@ vif(fit)
 alias(fit)
 
 threeLineTable(cbind(rownames(lm.summary$coefficients), as.data.frame(round(lm.summary$coefficients, 4))), "Table 10: Linear Regression Model on Training Data set", "", "Linear_Regression_Table")
+
+# RMSE of Linear Regression Model
+rmse_stepwise_train <- sqrt(mean(lm.summary$residuals^2))
 
 ######### First Batch of Variables Removed #########
 regressionFittingFeatures <-  regressionFittingFeatures %>% 
