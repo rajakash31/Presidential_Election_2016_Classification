@@ -51,7 +51,7 @@ election2020$county_fips <- as.factor(election2020$county_fips)
 ElectionData$c_fips <- as.factor(ElectionData$c_fips)
 ElectionData <- ElectionData %>% inner_join(election2020, by = c("c_fips" = "county_fips"))
 
-threeLineTable(ElectionData[1:5, 157:165], "Table 2: New variables added to the master data", "", "Appended data")
+threeLineTable(ElectionData[1:5, 157:168], "Table 2: New variables added to the master data", "", "Appended data")
 
 ElectionData <- ElectionData %>% inner_join(region, by = c("state" = "state.code"))
 
@@ -96,19 +96,22 @@ ElectionDataEDA <- ElectionData %>%
   dplyr::select(v2016, pd2016, pg2016, ppd2016, v2012, pd2012, pg2012, ppd2012, v2008, pd2008, pg2008, ppd2012, population.2016, geograhic.region)
 
 
-percDemocraticVotesStats <- ElectionDataEDA %>% 
-  dplyr::select(pd2008, pd2012, pd2016) %>% 
-  describe(quant = c(.25, .75), IQR = TRUE) %>% 
-  mutate(year = c(2008, 2012, 2016)) %>% 
-  relocate(year)
+describeTable <- ElectionDataEDA %>% dplyr::select(pd2016, pg2016, ppd2016, pd2012, pg2012, ppd2012, pd2008, pg2008, ppd2012, population.2016)
+
+overallStats <- describeTable %>%   describe(quant = c(.25, .75), IQR = TRUE)
+overallStats <- round(overallStats, 2)
+overallStats$vars <- rownames(overallStats)
+
+options(scipen = 22)
+threeLineTable(overallStats, "Table : Descriptive statistics of overall data", "", "Descriptive stats")
+
+percDemocraticVotesStats <- ElectionDataEDA %>% dplyr::select(pd2008, pd2012, pd2016) %>%   describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% relocate(year)
 
 threeLineTable(percDemocraticVotesStats, "Table 6: Descriptive statistics of Democratic party %votes by year", "", "Democratic votes")
 
-percRepublicanVotesStats <- ElectionDataEDA %>% 
-  dplyr::select(pg2008, pg2012, pg2016) %>% 
-  describe(quant = c(.25, .75), IQR = TRUE) %>% 
-  mutate(year = c(2008, 2012, 2016)) %>% 
-  relocate(year)
+percRepublicanVotesStats <- ElectionDataEDA %>% dplyr::select(pg2008, pg2012, pg2016) %>% describe(quant = c(.25, .75), IQR = TRUE) %>% 
+  mutate(year = c(2008, 2012, 2016)) %>% relocate(year)
 
 threeLineTable(percRepublicanVotesStats, "Table 7: Descriptive statistics of Republican party %votes by year", "", "Republican votes")
 
@@ -134,7 +137,7 @@ percRepublicanVotesStatReg <- rbind(percRepublicanVotesStatsSouth, percRepublica
 
 threeLineTable(percRepublicanVotesStatReg, "Table 7: Descriptive statistics of Republican party %votes by region", "", "Republican votes region")
 
-# Plot of outcome variable 'Total Democratic Votes' by state and year
+# Plot of outcome variable '% Democratic Votes' by region and year
 percDVotesL <- ElectionDataEDA %>% 
   dplyr::select(geograhic.region, pd2008, pd2012, pd2016) %>% group_by(geograhic.region) %>% summarise('2008' = mean(pd2008, na.rm = TRUE),
                                                                           '2012' = mean(pd2012, na.rm = TRUE),
@@ -149,7 +152,7 @@ ggplot(data = percDVotesL, mapping = aes(x = reorder(factor(geograhic.region), p
   theme_bw()
 
 
-# Plot of outcome variable 'Total Republican Votes' by state and year
+# Plot of outcome variable '% Republican Votes' by region and year
 percRVotesL <- ElectionDataEDA %>% 
   dplyr::select(geograhic.region, pd2008, pd2012, pd2016) %>% group_by(geograhic.region) %>% summarise('2008' = mean(pd2008, na.rm = TRUE),
                                                                                                        '2012' = mean(pd2012, na.rm = TRUE),
@@ -157,11 +160,8 @@ percRVotesL <- ElectionDataEDA %>%
   gather(year, pgVotes, c('2008', '2012', '2016'))
 
 ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), pgVotes, function(x) -1*sum(x)), y = pgVotes, fill = year)) +
-  geom_bar(position = "dodge", stat = "identity") +
-  labs(title = "Percent Republican Votes by Region & Year") + 
-  scale_x_discrete(name ="Region") + 
-  scale_y_continuous(name = "Percent Republican Votes") +
-  theme_bw()
+  geom_bar(position = "dodge", stat = "identity") + labs(title = "Percent Republican Votes by Region & Year") + 
+  scale_x_discrete(name ="Region") +  scale_y_continuous(name = "Percent Republican Votes") + theme_bw()
 
 
 
