@@ -40,6 +40,8 @@ population <- read.csv(paste0(location, "Data/USPopulationByCounty.csv"))
 election2020 <- read.csv(paste0(location, "Data/2020ElectionResults.csv"))
 region <- read.csv(paste0(location, "Data/Regions.csv"))
 
+population %>% select('state')
+
 threeLineTable(population[1:5, 2:8], "Table 2: Snapshot of external population data", "Snapshot of population data sample", "Population Snapshot")
 threeLineTable(election2020[1:5, ], "Table 3: Snapshot of external 2020 election results data", "Snapshot of 2020 election results data", "Election 2020 Snapshot")
 threeLineTable(region[1:5, ], "Table 4: Sample of additional region variable created", "", "Region Snapshot")
