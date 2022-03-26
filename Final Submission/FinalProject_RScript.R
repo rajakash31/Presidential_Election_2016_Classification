@@ -203,7 +203,7 @@ ggplot(data = percRVotesL, mapping = aes(x = reorder(factor(geograhic.region), p
 #                          Creating 2012 and 2016 Data Set                                #
 ###########################################################################################
 ElectionData2012 <- ElectionData %>% 
-  dplyr::select(v2012, vd2012, vg2012, pd2012, pg2012, diff2012, ppd2012, lforce11, emp11, unemp11, unrate11, 
+  dplyr::select(c_fips, v2012, vd2012, vg2012, pd2012, pg2012, diff2012, ppd2012, lforce11, emp11, unemp11, unrate11, 
          imig11, dmig11, nmig11, population.2011, population.female.2011, population.male.2011,
          `American Indian or Alaska Native.2011`, `Asian or Pacific Islander.2011`, `Black or African American.2011`, White.2011,
          `< 1 year.2011`, `10-14 years.2011`, `15-19 years.2011`, `20-24 years.2011`, `25-29 years.2011`, `30-34 years.2011`,
@@ -214,7 +214,7 @@ ElectionData2012 <- ElectionData %>%
 
 
 ElectionData2016 <- ElectionData %>% 
-  dplyr::select(v2016, vd2016, vg2016, pd2016, pg2016, diff2016, ppd2016, lforce15, emp15, unemp15, unrate15, 
+  dplyr::select(c_fips, v2016, vd2016, vg2016, pd2016, pg2016, diff2016, ppd2016, lforce15, emp15, unemp15, unrate15, 
          imig15, dmig15, nmig15, population.2015, population.female.2015, population.male.2015,
          `American Indian or Alaska Native.2015`, `Asian or Pacific Islander.2015`, `Black or African American.2015`, White.2015,
          `< 1 year.2015`, `10-14 years.2015`, `15-19 years.2015`, `20-24 years.2015`, `25-29 years.2015`, `30-34 years.2015`,
