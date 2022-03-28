@@ -55,8 +55,13 @@ crime$year <- as.factor(crime$year)
 
 modelDataNew3 <- modelDataNew2 %>% inner_join(crime, by = c("c_fips" = "FIPS_COUNTY", "year" = "year"))
 
-ggplot(data = modelDataNew2) +
-  geom_density(mapping = aes(x = emp_perc))
+
+ggplot(data = modelDataNew3) +
+  geom_density(mapping = aes(x = VIOL))
+
+
+ggplot(data = modelDataNew3) +
+  geom_density(mapping = aes(x = log(VIOL)))
 
 ggplot(data = modelDataNew2) +
   geom_boxplot(mapping = aes(x = emp_perc))
@@ -64,11 +69,96 @@ ggplot(data = modelDataNew2) +
 modelTrain <- modelDataNew3 %>% filter(year == 2012) %>% dplyr::select(-year, -c_fips)
 modelTest <- modelDataNew3 %>% filter(year == 2016) %>% dplyr::select(-year, -pd, -c_fips)
 
-lm1 <- lm(pd ~ ., data = modelTrain)
+modelTrainLasso <- modelDataNew3 %>% filter(year == 2012) %>% dplyr::select(-year, -c_fips)
+modelTestLasso <- modelDataNew3 %>% filter(year == 2016) %>% dplyr::select(-year, -pd, -c_fips)
+
+write.csv(modelTrain, "train.csv")
+
+lm0 <- lm(pd ~ log(emp_perc) + log(unrate_perc) + imig_perc + dmig_perc + log(popFemale_perc) + AmInd_perc + log(Asian_perc) + AfAm_perc + 
+            Age_0_14_perc + Age_25_34_perc + Age_35_44_perc + Age_45_54_perc + Age_55_64_perc + Age_65_74_perc + Age_74_84_perc + 
+            log(Age_85_perc) + log(VIOL +1), data = modelTrain)
+summary(lm0)
+
+vif(lm0)
+
+lm1 <- lm(pd ~ emp_perc + unrate_perc + imig_perc + dmig_perc + popFemale_perc + AmInd_perc + Asian_perc + AfAm_perc + Age_0_14_perc + 
+            Age_25_34_perc + Age_35_44_perc + Age_45_54_perc + Age_55_64_perc + Age_65_74_perc +  Age_85_perc + VIOL, data = modelTrain)
+
+
 summary(lm1)
+
+
+lm2 <- lm(pd ~ log(emp_perc) + log(unrate_perc) + imig_perc + dmig_perc + log(popFemale_perc) + AmInd_perc + Asian_perc + AfAm_perc + Age_0_14_perc + 
+            Age_25_34_perc + Age_35_44_perc + Age_45_54_perc + Age_55_64_perc + Age_65_74_perc +  Age_85_perc + VIOL, data = modelTrain)
+
+
+summary(lm2)
+
 
 vif(lm1)
 alias(lm1)
+
+set.seed(454)
+modelTrainLasso <- modelDataNew3 %>% filter(year == 2012) %>% dplyr::select(-year, -c_fips)
+modelTestLasso <- modelDataNew3 %>% filter(year == 2016) %>% dplyr::select(-year, -c_fips)
+
+train <- modelTrainLasso
+test <- modelTestLasso
+
+train_x <- model.matrix(pd ~ ., train)[, -1]
+test_x <- model.matrix(pd ~ ., test)[, -1]
+
+train_y <- train$pd
+test_y <- test$pd
+
+
+################################################################
+# Find best value of Lambda using Cross-Validation
+################################################################
+set.seed(454)
+cv.lasso <- cv.glmnet(train_x, train_y)
+plot(cv.lasso)
+
+################################################################
+# Optimal Value of Lambda; Minimizes the Prediction Error
+# Lambda Min - Minimizes out of sample loss
+# Lambda 1SE - Largest value of Lambda within 1 Standard Error of Lambda Min.
+################################################################
+log(cv.lasso$lambda.min)
+log(cv.lasso$lambda.1se)
+
+
+# Fit the model on training set using lambda.min 
+model.lasso.min <- glmnet(train_x, train_y, alpha = 1, lambda = cv.lasso$lambda.1se)
+
+# Display Regression Coefficients
+coef(model.lasso.min)
+
+unrate_perc
+imig_perc
+dmig_perc
+popFemale_perc
+AmInd_perc
+Asian_perc
+AfAm_perc
+Age_0_14_perc
+Age_45_54_perc
+Age_55_64_perc
+Age_65_74_perc
+Age_74_84_perc
+Age_85_perc
+VIOL
+
+
+
+lm3 <- lm(pd ~ log(unrate_perc) + log(imig_perc) + dmig_perc + popFemale_perc + AmInd_perc + Asian_perc + AfAm_perc + Age_0_14_perc +
+          Age_45_54_perc + Age_55_64_perc + Age_65_74_perc + Age_74_84_perc + Age_85_perc + VIOL, data = modelTrain)
+
+
+summary(lm3)
+
+
+vif(lm1)
 
 pred <- predict(lm1, newdata = modelTest)
 
